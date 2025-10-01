@@ -1,7 +1,18 @@
-import React from 'react'
+'use client'
+import React, { createContext, useContext, useState } from 'react'
+import { FormProvider, useFormContext } from './FormContext'
+
+
+
+
 
 const layout = ({children}:{children: React.ReactNode}) => {
+    
+
   return (
+    <FormProvider >
+
+    
     <div className=' h-screen flex  w-full'>
     <section className='w-1/3 bg-amber-600 p-12 flex flex-col items-center  justify-center'>
         <div className='flex min-h-screen flex-col items-center justify-center'>
@@ -26,6 +37,7 @@ const layout = ({children}:{children: React.ReactNode}) => {
     </div>
     
     </div>
+    </FormProvider>
   )
 }
 

@@ -1,13 +1,17 @@
-import AuthForm from '@/app/components/AuthForm'
-import { sign } from 'crypto'
-import React from 'react'
+"use client"
+import AuthForm, { formType } from '@/components/AuthForm'
+import React, { useContext, useEffect } from 'react'
+import { useFormContext } from '../FormContext'
 
 
 const Signup = () => {
-  let formtype = 'sign-up'
+  const {formType,setFormType} = useFormContext();
+  useEffect(()=>{
+    setFormType("sign-up");
+  },[])
   return (
     <div >
-      <AuthForm type={formtype} />
+      <AuthForm type={formType} />
     </div>
   )
 }

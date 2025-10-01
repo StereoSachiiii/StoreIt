@@ -8,7 +8,7 @@ import { useFormContext } from '../FormContext';
 const Signin = () => {
   const {formType,setFormType} = useFormContext();
   useEffect(()=>{
-    setFormType("sign-in");
+    setFormType("otp");
   },[])
   return (
     <div >
