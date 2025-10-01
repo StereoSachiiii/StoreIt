@@ -1,7 +1,7 @@
 "use server";
 
 import { ID } from "node-appwrite";
-import { createAdminClient } from "../appwrite";
+import { createAdminClient, createSessionClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
 import { cookies } from "next/headers";
@@ -325,3 +325,16 @@ export const signOut = async () => {
     throw error;
   }
 };
+
+export const getUserDetails = async () =>{
+try{
+    const {account} = await createSessionClient()
+    const result = await account.get();
+    return result
+}catch(error){
+  console.log(error,"Error fetching info");
+}
+ 
+
+
+}
