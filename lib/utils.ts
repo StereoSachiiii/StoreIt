@@ -9,10 +9,10 @@ export const parseStringify = (value:unknown) => {
   return JSON.parse(JSON.stringify(value));
 }
 
-export function getFileType(filename: string): { name: string; extension: string; type: string } {
+export function getFileType(filename: string): { name: string; extension: string; fileType: string } {
   const lastDot = filename.lastIndexOf(".");
   if (lastDot === -1 || lastDot === 0) {
-    return { name: filename, extension: "", type: "" };
+    return { name: filename, extension: "", fileType: "" };
   }
   const name = filename.substring(0, lastDot);
   const extension = filename.substring(lastDot + 1);
@@ -65,5 +65,6 @@ export function getFileType(filename: string): { name: string; extension: string
     default:
       type = "unknown";
   }
-  return { name, extension, type };
+  const fileType= type
+  return { name, extension, fileType };
 }

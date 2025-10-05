@@ -41,7 +41,7 @@ const Sidebar = ({username , email }:sideBarProps) => {
                 
    { navItems.map((item,index)=>(
 
-    <Link href={item.href}>
+    <Link href={item.href} key={index}>
                     <div className={`w-full bg-amber-600 p-3 overflow-hidden text-white rounded-3xl flex justify-center items-center gap-2 ${pathname===item.href ?"bg-blue-500 text-white" : "text-gray-600" }` }> <img src={`${item.name}.png`} alt="" />{item.name}</div>
     </Link>    
 
@@ -55,14 +55,18 @@ const Sidebar = ({username , email }:sideBarProps) => {
 
         <div className=' flex items-center  justify-center w-full  bg-stone-50 p-1 rounded-2xl shadow-md '>
                 
-                <p title='Username' className=''>
+                <div title='Username' className=''>
                 {username}
                 <br />
-                <div title='email'>{email}</div>
+                
+                {email}
+                <br />
 
-                </p>
+                
                 <img src="person.png"  className="w-8 h-8" alt="" />
         </div>
+                </div>
+
 
         
 
