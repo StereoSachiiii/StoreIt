@@ -1,5 +1,7 @@
 import React from 'react'
 import MobileNavigation from './MobileNavigation'
+import Link from 'next/link'
+
 
 const Header = React.memo(() => {
   return (
@@ -35,13 +37,17 @@ const Header = React.memo(() => {
       </div>
 
       {/* Desktop buttons (hidden on mobile) */}
-      <div className="hidden md:flex items-center gap-4">
+      <Link href="upload">
+       <div className="hidden md:flex items-center gap-4">
         <button className="flex items-center gap-1 bg-amber-600 text-white rounded-3xl px-4 py-2">
           <img src="cloud.svg" alt="Upload" className="w-5" />
           Upload
         </button>
         <img src="back.svg" alt="Back" className="w-6 cursor-pointer" />
       </div>
+      
+      </Link>
+     
 
       {/* Mobile Hamburger / Trigger */}
       <div className="md:hidden flex items-center">
