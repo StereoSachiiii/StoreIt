@@ -1,10 +1,11 @@
 "use server";
 
-import { ID } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
 import { cookies } from "next/headers";
+
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -287,31 +288,64 @@ export const resendOTP = async ({
 
 // ==================== GET CURRENT USER ====================
 
+// ==================== GET CURRENT USER ====================
+
 export const getCurrentUser = async () => {
+  console.log("🔍 [getCurrentUser] === FUNCTION CALLED ===");
+  
   try {
-    const { account, tablesDB } = await createAdminClient();
+    console.log("🔍 [getCurrentUser] Step 1: Creating session client...");
     
-    const result = await account.get();
+    // Use createSessionClient to access the session cookie
+    const { account } = await createSessionClient();
+    console.log("✅ [getCurrentUser] Step 1: Session client created");
     
-    if (result.$id) {
-      const user = await tablesDB.listRows(
+    console.log("🔍 [getCurrentUser] Step 2: Getting account...");
+    const accountResult = await account.get();
+    console.log("✅ [getCurrentUser] Step 2: Account retrieved");
+    console.log("📋 [getCurrentUser] Account ID:", accountResult.$id);
+    console.log("📋 [getCurrentUser] Account Email:", accountResult.email);
+    
+    if (accountResult.$id) {
+      console.log("🔍 [getCurrentUser] Step 3: Creating admin client for database query...");
+      
+      // Now use admin client to query the database
+      const { databases } = await createAdminClient();
+      console.log("✅ [getCurrentUser] Step 3: Admin client created");
+      
+      console.log("🔍 [getCurrentUser] Step 4: Querying database for user...");
+      const user = await databases.listDocuments(
         appwriteConfig.databaseId,
         appwriteConfig.usersCollection,
-        [`equal("accountId", ["${result.$id}"])`]
+        [Query.equal("accountId", accountResult.$id)]
       );
+      console.log("✅ [getCurrentUser] Step 4: Database query complete");
       
-      if (user.rows.length > 0) {
-        return parseStringify(user.rows[0]);
+      console.log("📦 [getCurrentUser] Found users:", user.documents.length);
+      
+      if (user.documents.length > 0) {
+        console.log("✅ [getCurrentUser] User found:", user.documents[0].email);
+        console.log("📋 [getCurrentUser] Full user data:", user.documents[0]);
+        return parseStringify(user.documents[0]);
+      } else {
+        console.log("❌ [getCurrentUser] No user found in database for accountId:", accountResult.$id);
+        console.log("📋 [getCurrentUser] Database:", appwriteConfig.databaseId);
+        console.log("📋 [getCurrentUser] Collection:", appwriteConfig.usersCollection);
       }
+    } else {
+      console.log("❌ [getCurrentUser] No accountId in account result");
     }
     
+    console.log("⚠️ [getCurrentUser] Returning null");
     return null;
   } catch (error) {
-    console.log("Error getting current user:", error);
+    console.error("💥 [getCurrentUser] === ERROR CAUGHT ===");
+    console.error("💥 [getCurrentUser] Error type:", error?.constructor?.name);
+    console.error("💥 [getCurrentUser] Error message:", error?.message);
+    console.error("💥 [getCurrentUser] Full error:", error);
     return null;
   }
 };
-
 // ==================== SIGN OUT ====================
 
 export const signOut = async () => {
@@ -325,16 +359,44 @@ export const signOut = async () => {
     throw error;
   }
 };
-
-export const getUserDetails = async () =>{
-try{
-    const {account} = await createSessionClient()
-    const result = await account.get();
-    return result
-}catch(error){
-  console.log(error,"Error fetching info");
-}
- 
-
-
-}
+export const getUserDetails = async () => {
+  try {
+    const { account } = await createSessionClient();
+    const { tablesDB } = await createAdminClient();
+    
+    const accountResult = await account.get();
+    console.log("📋 Account ID:", accountResult.$id);
+    
+    if (accountResult.$id) {
+      // Try without any filter first to see if we can read the collection
+      const allUsers = await tablesDB.listRows(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollection
+      );
+      
+      console.log("📦 All users count:", allUsers.rows.length);
+      
+      // Find the user manually
+      const dbUser = allUsers.rows.find(
+        (row: any) => row.accountId === accountResult.$id
+      );
+      
+      if (dbUser) {
+        console.log("✅ Found user:", dbUser.email);
+        return parseStringify({
+          ...accountResult,
+          accountId: dbUser.accountId,
+          fullName: dbUser.fullName,
+          avatar: dbUser.avatar,
+        });
+      } else {
+        console.log("❌ No user found with accountId:", accountResult.$id);
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.log("Error fetching user details:", error);
+    throw error;
+  }
+};

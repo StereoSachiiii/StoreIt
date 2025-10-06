@@ -1,8 +1,10 @@
 "use client"
+import { UserContext, useUser } from '@/app/context/userContext'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import path from 'path'
-import React from 'react'
+import React, { useContext } from 'react'
+
 
 interface sideBarProps  {
     username : string ,
@@ -32,6 +34,7 @@ const navItems: navItem[] = [
 
 
 const Sidebar = ({username , email }:sideBarProps) => {
+  const userDetails = useUser()
 
     const pathname = usePathname();
     
@@ -56,10 +59,10 @@ const Sidebar = ({username , email }:sideBarProps) => {
         <div className=' flex items-center  justify-center w-full  bg-stone-50 p-1 rounded-2xl shadow-md '>
                 
                 <div title='Username' className=''>
-                {username}
+                {userDetails?.username}
                 <br />
                 
-                {email}
+                {userDetails?.email}
                 <br />
 
                 

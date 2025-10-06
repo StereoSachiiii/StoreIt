@@ -1,50 +1,54 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Welcome from "../../components/Welcome";
 import Header from "../../components/Header";
 import Sidebar from "@/components/Sidebar";
-import { getUserDetails } from "@/lib/actions/user.actions";
+import { Toaster } from "@/components/ui/sonner";
+import { UserProvider, useUser } from "@/app/context/userContext";
 
+// Inner component that uses the context
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const userDetails = useUser();
 
-interface userDetailsInterface {
-  username :string ,
-  email :string
+  return (
+    <div className="flex h-screen flex-col relative">
+      <div className="w-full z-50">
+        <Header />
+      </div>
+
+      <div className="flex flex-1 w-full h-full">
+        <Sidebar
+          username={userDetails.username}
+          email={userDetails.email}
+        />
+        {children}
+      </div>
+
+      <Toaster />
+    </div>
+  );
 }
 
-
-export default  function RootLayout({
+// Main layout that wraps with provider
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [showWelcome, setShowWelcome] = useState(true);
-  const [userDetails,setUserDetails] = useState<userDetailsInterface>()
-  useEffect( () => {
-    
-    getUserDetails().then((res)=>(setUserDetails({
-      username : res?.name,
-      email : res?.email
-    }))).catch((err)=>(console.log(err,"error fetching user details")))
-    
 
+  useEffect(() => {
     const timer = setTimeout(() => setShowWelcome(false), 1500);
     return () => clearTimeout(timer);
   }, []);
 
+  if (showWelcome) {
+    return <Welcome />;
+  }
+
   return (
-    <div className="flex  h-screen flex-col  relative ">
-       <div className="w-full z-50  ">
-    <Header />
-    </div>
-    <div className="  flex flex-1 w-full h-full">
-      <Sidebar username={userDetails?.username} email={userDetails?.email}/>
-      {children}
-    </div>
-    
-    </div>
-    
-   
+    <UserProvider>
+      <LayoutContent>{children}</LayoutContent>
+    </UserProvider>
   );
 }
-const fetchUser = async () =>{
-
