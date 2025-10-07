@@ -15,7 +15,6 @@ DISCLAIMER
 - Beautiful UI - Modern gradient design with smooth animations
 - Responsive Design - Works seamlessly on desktop, tablet, and mobile
 - File Sharing - Share files with other users
-- Sort and Filter - Organize files by name, date, or size
 - Storage Management - Track your storage usage
 - Fast Performance - Built with Next.js 15 App Router
 
