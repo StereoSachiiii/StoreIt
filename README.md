@@ -255,4 +255,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Project Link: https://github.com/yourusername/storeit
 
-Made with care by Your Name
+im just tryna learn
