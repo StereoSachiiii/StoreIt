@@ -175,13 +175,7 @@ export const signInWithPassword = async ({
   }
 };
 
-// ==================== OTP SIGN IN (Passwordless) ====================
 
-/**
- * Step 1: Send OTP for Sign In
- * - Checks if user exists
- * - Sends OTP using existing accountId
- */
 export const sendSignInOTP = async (email: string) => {
   console.log("\n🚀 [sendSignInOTP] Starting OTP sign in for:", email);
   
@@ -197,7 +191,6 @@ export const sendSignInOTP = async (email: string) => {
     const { account } = await createAdminClient();
     const token = await account.createEmailToken(existingUser.accountId, email);
     
-    console.log("✅ [sendSignInOTP] OTP sent successfully!");
     
     return parseStringify({ 
       accountId: token.userId,
@@ -205,7 +198,6 @@ export const sendSignInOTP = async (email: string) => {
     });
     
   } catch (error: any) {
-    console.error("💥 [sendSignInOTP] ERROR:", error);
     throw error;
   }
 };
@@ -222,7 +214,6 @@ export const verifySignInOTP = async ({
   accountId: string;
   otp: string;
 }) => {
-  console.log("🔐 [verifySignInOTP] Verifying OTP for accountId:", accountId);
   
   try {
     const { account } = await createAdminClient();
@@ -238,11 +229,9 @@ export const verifySignInOTP = async ({
       secure: true,
     });
     
-    console.log("✅ [verifySignInOTP] Sign in complete!");
     return parseStringify({ sessionId: session.$id });
     
   } catch (error: any) {
-    console.error("💥 [verifySignInOTP] ERROR:", error);
     throw new Error(`Failed to verify OTP: ${error?.message || 'Invalid code'}`);
   }
 };
@@ -259,7 +248,6 @@ export const resendOTP = async ({
   email: string;
   accountId?: string;
 }) => {
-  console.log("📧 [resendOTP] Resending OTP for:", email);
   
   try {
     const { account } = await createAdminClient();
@@ -277,11 +265,9 @@ export const resendOTP = async ({
     
     const token = await account.createEmailToken(finalAccountId, email);
     
-    console.log("✅ [resendOTP] OTP resent successfully!");
     return parseStringify({ accountId: token.userId });
     
   } catch (error: any) {
-    console.error("💥 [resendOTP] ERROR:", error);
     throw error;
   }
 };
@@ -291,58 +277,38 @@ export const resendOTP = async ({
 // ==================== GET CURRENT USER ====================
 
 export const getCurrentUser = async () => {
-  console.log("🔍 [getCurrentUser] === FUNCTION CALLED ===");
   
   try {
-    console.log("🔍 [getCurrentUser] Step 1: Creating session client...");
     
     // Use createSessionClient to access the session cookie
     const { account } = await createSessionClient();
-    console.log("✅ [getCurrentUser] Step 1: Session client created");
     
-    console.log("🔍 [getCurrentUser] Step 2: Getting account...");
     const accountResult = await account.get();
-    console.log("✅ [getCurrentUser] Step 2: Account retrieved");
-    console.log("📋 [getCurrentUser] Account ID:", accountResult.$id);
-    console.log("📋 [getCurrentUser] Account Email:", accountResult.email);
-    
+ 
     if (accountResult.$id) {
-      console.log("🔍 [getCurrentUser] Step 3: Creating admin client for database query...");
       
       // Now use admin client to query the database
       const { databases } = await createAdminClient();
-      console.log("✅ [getCurrentUser] Step 3: Admin client created");
       
-      console.log("🔍 [getCurrentUser] Step 4: Querying database for user...");
       const user = await databases.listDocuments(
         appwriteConfig.databaseId,
         appwriteConfig.usersCollection,
         [Query.equal("accountId", accountResult.$id)]
       );
-      console.log("✅ [getCurrentUser] Step 4: Database query complete");
       
-      console.log("📦 [getCurrentUser] Found users:", user.documents.length);
       
       if (user.documents.length > 0) {
-        console.log("✅ [getCurrentUser] User found:", user.documents[0].email);
-        console.log("📋 [getCurrentUser] Full user data:", user.documents[0]);
+       
         return parseStringify(user.documents[0]);
       } else {
-        console.log("❌ [getCurrentUser] No user found in database for accountId:", accountResult.$id);
-        console.log("📋 [getCurrentUser] Database:", appwriteConfig.databaseId);
-        console.log("📋 [getCurrentUser] Collection:", appwriteConfig.usersCollection);
+        
       }
     } else {
-      console.log("❌ [getCurrentUser] No accountId in account result");
     }
     
-    console.log("⚠️ [getCurrentUser] Returning null");
     return null;
   } catch (error) {
-    console.error("💥 [getCurrentUser] === ERROR CAUGHT ===");
-    console.error("💥 [getCurrentUser] Error type:", error?.constructor?.name);
-    console.error("💥 [getCurrentUser] Error message:", error?.message);
-    console.error("💥 [getCurrentUser] Full error:", error);
+   
     return null;
   }
 };
@@ -350,9 +316,9 @@ export const getCurrentUser = async () => {
 
 export const signOut = async () => {
   try {
-    const { account } = await createAdminClient();
-    await account.deleteSession('current');
-    (await cookies()).delete('appwrite-session');
+    const { account } = await createSessionClient()
+ await account.deleteSessions();   
+ (await cookies()).delete('appwrite-session');
     return { success: true };
   } catch (error) {
     console.error("Error signing out:", error);
@@ -400,3 +366,6 @@ export const getUserDetails = async () => {
     throw error;
   }
 };
+
+
+

@@ -95,9 +95,7 @@ Query.or([
     ])
   ]
 }
-
-
-export const getfiles = async () => {
+export const getfiles = async (searchParams?: { query?: string }) => {
   const { databases } = await createAdminClient();
 
   if (!databases) {
@@ -105,24 +103,24 @@ export const getfiles = async () => {
   }
 
   try {
-    // Get current user's details
     const currentUser = await getCurrentUser();
-    // Debug
 
-    // User doesn't exist
     if (!currentUser) {
       throw new Error("user not found");
     }
 
     const queries = createQueries(currentUser);
+    
+    if (searchParams?.query && searchParams.query.trim()) {
+      queries.push(Query.contains("name", searchParams.query.trim()));
+    }
 
-    // Use Appwrite's new listDocuments method
     const userFiles = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.filesCollection,
       queries
     );
-    console.log("users files",userFiles);
+    console.log("users files", userFiles);
 
     return userFiles;
   } catch (err) {
@@ -131,12 +129,9 @@ export const getfiles = async () => {
   }
 };
 
-
 export const renameFile = async ({ fileId, name, extension, path }:any) => {
   try {
-    const { databases } = await createAdminClient() // CALL the function
-
-    // Use dot instead of comma for filename
+    const { databases } = await createAdminClient()
     const newName = `${name}.${extension}`
 
     const updatedFile = await databases.updateDocument(
@@ -148,29 +143,44 @@ export const renameFile = async ({ fileId, name, extension, path }:any) => {
       }
     )
 
-    // Revalidate the page/path after update
     revalidatePath(path)
 
     return parseStringify(updatedFile)
   } catch (error) {
     console.error("Failed to rename the file:", error)
-    throw error // propagate error if needed
+    throw error 
   }
 }
+export const deleteFile = async ({ fileId, path }: any) => {
+  const { databases, storage } = await createAdminClient();
 
-export const deleteFile = async ({fileId,path}:any) =>{
+  try {
+    const fileDoc = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollection,
+      fileId
+    );
 
-  const {databases,storage} = await createAdminClient()
-await storage.deleteFile(appwriteConfig.bucketId, fileId)
+    const bucketFileId = fileDoc.bucketField; 
 
-await databases.deleteDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.filesCollection,
-    fileId
-)
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollection,
+      fileId
+    );
 
-revalidatePath(path)
-}
+    await storage.deleteFile(appwriteConfig.bucketId, bucketFileId);
+
+    if (path) revalidatePath(path);
+
+    console.log(`File ${fileId} deleted successfully`);
+
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    throw error;
+  }
+};
+
 
 export const shareFileWithUser = async ({
   fileId,
@@ -200,10 +210,8 @@ export const shareFileWithUser = async ({
       fileId
     )
 
-    // 2️⃣ Add target user to users array (if not already included)
     const updatedUsers = Array.from(new Set([...(fileDoc.users || []), targetUserId]))
 
-    // 3️⃣ Update the document
     const updatedFile = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.filesCollection,
@@ -219,3 +227,78 @@ export const shareFileWithUser = async ({
     throw error
   }
 }
+
+
+
+export const getFileCounts = async () => {
+  const { databases } = await createAdminClient();
+  const user = await getCurrentUser();
+  if (!user) throw new Error("User not found");
+
+  const baseQuery = [
+    Query.or([
+      Query.equal("accountId", user.accountId),
+      Query.contains("users", [user.accountId]),
+    ]),
+    Query.limit(1), 
+  ];
+
+  const getCount = async (filters: any[]) => {
+    const res = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollection,
+      [...filters, ...baseQuery]
+    );
+    return res.total; 
+  };
+
+  const [documents, images, media, others] = await Promise.all([
+    getCount([Query.equal("type", "document")]),
+    getCount([Query.equal("type", "image")]),
+    getCount([Query.equal("type", "media")]),
+    getCount([
+      Query.notEqual("type", "document"),
+      Query.notEqual("type", "image"),
+      Query.notEqual("type", "media"),
+    ]),
+  ]);
+
+  return { documents, images, media, others };
+};
+
+
+
+export const getSharedFiles = async () => {
+  try {
+    const { databases } = await createAdminClient();
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) throw new Error("User not found");
+
+    const filesResult = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollection,
+      [
+        Query.or([
+          Query.equal("accountId", currentUser.accountId),
+          Query.contains("users", [currentUser.accountId]),
+        ]),
+        Query.limit(100),
+      ]
+    );
+
+    const sharedFiles = filesResult.documents.filter((file: any) => {
+      if (!Array.isArray(file.users)) return false;
+      return file.users.includes(currentUser.accountId) && file.users.length > 1;
+    });
+
+    console.log("Shared files:", sharedFiles);
+
+    return parseStringify(sharedFiles);
+  } catch (error) {
+    console.error("Error fetching shared files:", error);
+    throw error;
+  }
+};
+
+

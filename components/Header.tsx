@@ -1,60 +1,67 @@
-import React from 'react'
-import MobileNavigation from './MobileNavigation'
+'use client'
+import React, { useState } from 'react'
 import Link from 'next/link'
-
+import { useRouter, usePathname } from 'next/navigation'
 
 const Header = React.memo(() => {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [searchText, setSearchText] = useState('')
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      
+      const params = new URLSearchParams()
+      if (searchText.trim()) params.set('query', searchText.trim())
+      router.push(`${pathname}?${params.toString()}`)
+    }
+  }
+
   return (
-    <header className="w-full flex items-center justify-between p-4 md:p-6 shadow-lg bg-white gap-5">
-      {/* Logo + Title */}
+    <header className="w-full flex items-center justify-between p-4 md:p-6 shadow-lg bg-white border-b-2 border-amber-200 gap-3 md:gap-5">
       <div className="flex items-center gap-2 md:gap-4">
-        <img
-          src="/Logo.png"
-          alt="Logo"
-          className="h-8 md:h-12 w-auto"
-        />
-        <span className="hidden md:block text-2xl font-bold text-amber-600">
-          Storage
+        <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+          <svg className="w-5 h-5 md:w-7 md:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <span className="hidden md:block text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+          StoreIT
         </span>
       </div>
 
-      {/* Search bar (hidden on small screens) */}
-      <div className=" flex flex-1 max-w-[600px] items-center gap-2 bg-stone-100 rounded-3xl p-2 shadow-inner">
+      <div className="flex flex-1 max-w-[600px] items-center gap-2 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-2 shadow-inner border-2 border-amber-200">
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 50 50"
-          className="text-gray-500"
+          className="w-5 h-5 text-amber-600 flex-shrink-0 ml-1"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
-          <path d="M 21 3 C 11.654545 3 4 10.654545 4 20 C 4 29.345455 11.654545 37 21 37 C 24.701287 37 28.127393 35.786719 30.927734 33.755859 L 44.085938 46.914062 L 46.914062 44.085938 L 33.875 31.046875 C 36.43682 28.068316 38 24.210207 38 20 C 38 10.654545 30.345455 3 21 3 z M 21 5 C 29.254545 5 36 11.745455 36 20 C 36 28.254545 29.254545 35 21 35 C 12.745455 35 6 28.254545 6 20 C 6 11.745455 12.745455 5 21 5 z"></path>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
           type="text"
-          placeholder="Search"
-          className="flex-1 h-10 rounded-2xl bg-stone-100 p-2 outline-none"
+          placeholder="Search files..."
+          value={searchText}
+          onChange={e => setSearchText(e.target.value)}
+          onKeyDown={handleSearch}
+          className="flex-1 h-8 md:h-10 bg-transparent outline-none text-sm md:text-base text-slate-700 placeholder:text-slate-400"
         />
       </div>
 
-      {/* Desktop buttons (hidden on mobile) */}
-      <Link href="upload">
-       <div className="hidden md:flex items-center gap-4">
-        <button className="flex items-center gap-1 bg-amber-600 text-white rounded-3xl px-4 py-2">
-          <img src="cloud.svg" alt="Upload" className="w-5" />
-          Upload
-        </button>
-        <img src="back.svg" alt="Back" className="w-6 cursor-pointer" />
-      </div>
-      
-      </Link>
-     
-
-      {/* Mobile Hamburger / Trigger */}
-      <div className="md:hidden flex items-center">
-        <MobileNavigation />
+      <div className="flex items-center gap-2 md:gap-4">
+        <Link href="/upload">
+          <button className="flex items-center gap-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-600 hover:via-yellow-600 hover:to-orange-600 text-white rounded-xl px-3 py-2 md:px-4 md:py-2.5 font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <span className="hidden sm:inline">Upload</span>
+          </button>
+        </Link>
       </div>
     </header>
   )
 })
 
+Header.displayName = 'Header'
 export default Header

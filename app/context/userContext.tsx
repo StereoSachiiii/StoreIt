@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getUserDetails } from "@/lib/actions/user.actions";
+import { Spinner } from "@/components/ui/spinner"
 //interface for user details
 interface UserDetails {
   username: string;
@@ -8,7 +9,6 @@ interface UserDetails {
   accountId: string;
   ownerId: string;
 }
-//for the whole app . userdetails
 export const UserContext = createContext<UserDetails | null>(null);
 
 
@@ -39,7 +39,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       .catch((err) => console.error("error fetching user details", err));
   }, []);
   if (!userDetails) {
-    return <div>Loading...</div>; 
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+          <Spinner className="size-40 text-amber-600" />
+      </div>
+
+    ) ; 
   }
 
   return (
