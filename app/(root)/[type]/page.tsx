@@ -4,14 +4,11 @@ import Sort from '@/components/Sort'
 import { getfiles } from '@/lib/actions/file.actions'
 
 const Page = async ({ params }: { params: Promise<{ type: string }> }) => {
-  // Await params in Next.js 15+
   const { type } = await params;
   
-  // Fetch files directly on server
   const fileList = await getfiles();
   const allFiles = fileList?.documents || [];
   
-  // Filter files based on type
   const files = allFiles.filter((file: any) => {
     const fileType = file.type?.toLowerCase();
     
@@ -24,14 +21,12 @@ const Page = async ({ params }: { params: Promise<{ type: string }> }) => {
         return fileType === 'video' || fileType === 'audio';
       case 'others':
         return !['document', 'image', 'video', 'audio'].includes(fileType);
+     
       default:
         return true; // Show all if no specific type
     }
   });
   
-  console.log("Total Files:", allFiles.length);
-  console.log("Filtered Files:", files.length);
-
   return (
     <div className='p-6 flex flex-col w-full h-full gap-6 bg-gray-200 flex-1'>
       <section className='w-full'>

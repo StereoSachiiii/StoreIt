@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { appwriteConfig } from "./appwrite/config"
+
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
