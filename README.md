@@ -1,6 +1,9 @@
 # StoreIT - Cloud File Storage Platform
 
 A modern, feature-rich cloud storage application built with Next.js 15, Appwrite, and TypeScript. Upload, organize, search, and share your files with an elegant and responsive interface.
+##Disclaimer
+- The server components use Browser API's therefore when deploying you might have to refractor  some server side actions and make them client components such as Auth related actions.
+
 
 ## Features
 
